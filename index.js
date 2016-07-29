@@ -49,35 +49,41 @@ function onAttach(worker) {
     */
     worker.on('message', function(actionObj) {
 
-        // console.log('onMessage', actionObj);
-        if (actionObj.backslashReplaceRequired) {
-            // special handling required at icon click
-            actionObj.url = actionObj.
-                url.replace(/\\/g, '/'); // replace backslashes
+        if (simplePrefs.prefs.revealOpenOption === 'D' && 
+            actionObj.action === 'open') {
+            tabs.open(actionObj.url);
+        } else {
+            if ( actionObj.backslashReplaceRequired ) {
+                // special handling required at icon click
+                actionObj.url = actionObj.url.replace(/\\/g, '/'); // replace backslashes
 
-            // we need to check if file has 2 slashes because ff won't fix it
-            actionObj.url = actionObj.
-                url.replace(/file:[\/]{2,3}/i, 'file:\/\/\/');
+                // we need to check if file has 2 slashes because ff won't fix it
+                actionObj.url = actionObj.url.replace(/file:[\/]{2,3}/i, 'file:\/\/\/');
+            }
+
+            // check if default is open or reveal
+            if (simplePrefs.prefs.revealOpenOption === 'R' && 
+                simplePrefs.prefs.revealOpenOption !== 'D') {
+                // change logic
+                if (actionObj.action === 'open') {
+                    actionObj.action = 'reveal';
+                } else {
+                    actionObj.action = 'open';
+                } 
+            }
+
+            switch ( actionObj.action ) {
+                // Actions from content-script
+                case "open":
+                    launcher.start( actionObj.url );    
+                break;
+
+                case "reveal":
+                    launcher.start( actionObj.url, true);
+                break;
+            }
         }
-
-        switch (actionObj.action) {
-        // Actions from content-script
-        case 'open':
-            // check if link contains a window path variable
-            // later add a option to enable env. paths vars?
-            // console.log('checklink', actionObj);
-            var replacedLink = curSysEnv.checkLink(actionObj.url);
-
-            launcher.start(replacedLink, actionObj.reveal);
-            break;
-
-        default:
-            // not handled action
-            break;
-        }
-    });
-
-    worker.port.emit('init', simplePrefs.prefs, CONST);
+    } );
 
     // Pageshow / pagehide not needed but we could remove workers if page is
     // hidden could be useful for context menus. --> not needed here
