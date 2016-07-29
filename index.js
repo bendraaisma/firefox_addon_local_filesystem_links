@@ -9,10 +9,10 @@ var self = require('sdk/self'),
     mod = {},
     attached = false,
     statusIcon = require('./lib/toolbar/statusIcon').create(false),
-    tabs = require('sdk/tabs'),
+    tabs = require( "sdk/tabs" ),
     {isUriIncluded} = require('./lib/utils/matchUrl'),
-    sysEnv = require('./lib/system-env-vars'),
-    curSysEnv = sysEnv();
+    {env} = require('sdk/system/environment'),
+    strUtils = require('./lib/utils/string-util');
 
 var jqueryScript = 'js/jquery-1.11.3.min.js',
     jqueryObserveScript = 'js/jquery-observe.js';
@@ -48,6 +48,11 @@ function onAttach(worker) {
     *   - open: starts windows explorer with a fixed path (no file:// etc)
     */
     worker.on('message', function(actionObj) {
+
+        // prepare linux path with ~/ to a correct url that FF can handle
+        // info: windows path e.g. c:\~\temp is no problem because only file:///~/ will be replaced
+        actionObj.url = actionObj.url.replace(/file:[\/]+~\//, strUtils.strFormat('file:///{0}/', [env['HOME']]));
+        //console.log(env['HOME'], actionObj.url);
 
         if (simplePrefs.prefs.revealOpenOption === 'D' && 
             actionObj.action === 'open') {
