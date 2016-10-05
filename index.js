@@ -116,7 +116,7 @@ function onAttach(worker) {
 */
 function createMod() {
 
-    var whitelist = simplePrefs.prefs.whitelist || '*';
+    var whitelist = simplePrefs.prefs.whitelist || '* file://*'; // add file protocol to allow file browser --> should this be an option?';
 
     mod = pageMod.PageMod({
         include: whitelist.split(/\s+/),

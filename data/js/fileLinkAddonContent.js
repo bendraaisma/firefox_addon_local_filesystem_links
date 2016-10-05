@@ -18,7 +18,26 @@
         options = {
             //enableLinkIcons: self.options.enableLinkIcons
         },
-        currentIconClass; // folder or arrow?
+        currentIconClass, // folder or arrow?
+        // check if special link handling is required in file browser
+        isFileBrowser = /file:\/\//i.test(document.location.href), // if there is file protocol in url we are using file browser
+        basePath = ''; // required if isFileBrowser == true e.g. file:///c:/ prefix to all links
+
+    
+    if (isFileBrowser) {
+        basePath = document.location.pathname; // create basePath for fileBrowser
+        fileLinkSelectors = [ // override file selectors
+            '.file'    // add links with a-tag class file to the selector --> dir & file class are added to file links by FF
+        ];
+        // removed a.dir from push because it affects file browser behaviour 
+        var hrefCopy = '';
+        $('.file').each(function(index, fileLink) {
+            hrefCopy = '' + fileLink.href;
+            fileLink.href = '';
+            fileLink['data-href'] = hrefCopy;
+        })
+        
+    }
 
     function updateLinkTooltip() {
         var tooltipText = options.revealOpenOption == 'O' ?
@@ -57,7 +76,7 @@
 
         // console.log('test', appTextMessages);
         $icon = $container.append($('<i/>').addClass('material-icons'));
-
+        
         // now everything is ready to load
         activate();
     });
@@ -82,11 +101,12 @@
     $(document).on('click', fileLinkSelectors.join(', '), function(e) {
         e.preventDefault(); // prevent default to avoid browser to launch smb://
         // console.log( "clicked file link: " + this.href, options.revealOpenOption);
+        console.log('clicked',  basepath + this.href, this['data-href']);
 
         self.postMessage({
             action: 'open',
             // removed decodeURIComponent because env. var. failed
-            url: this.href, //decodeURIComponent(this.href),
+            url: basepath + this.href, //decodeURIComponent(this.href),
             reveal: options.revealOpenOption == 'O' ? false : true
         });
     });
@@ -99,12 +119,12 @@
 
         e.preventDefault();
 
-        // console.log('clicked icon', link, options.revealOpenOption);
+        console.log('clicked icon', basepath + link, options.revealOpenOption);
 
         self.postMessage({
             action: 'open',
             // removed decodeURIComponent because env. var. failed
-            url: link, //decodeURIComponent(link),
+            url:  basepath + link, //decodeURIComponent(link),
             reveal: options.revealOpenOption == 'O' ? true : false,
             backslashReplaceRequired: true
         });

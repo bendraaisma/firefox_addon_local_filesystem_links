@@ -24,7 +24,7 @@
       "title": "Urls added to white-list will be clickable",
       "description": "Any link that will be added to the white-list will be clickable. Empty or * will enable all. Multiple urls are space separated. Wildcards are allowed e.g. *.trello.com",
       "type": "string",
-      "value": "*"
+      "value": "* file://*"
     },
     {
       "name": "enableExecutables",
